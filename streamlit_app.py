@@ -1,28 +1,39 @@
 import streamlit as st
-import time
-import requests
+from api_connect import api_connect 
+from loader import loader
+
 
 def run_app():
-    st.title('Transcrição de vídeo')
+    config()
+    st.title('Estimulo KnowledgeBase')
+    st.subheader('Carregar vídeo via:')
     tab1, tab2 = st.tabs(['Upload de arquivo', 'Vídeo do YouTube'])
-    with tab1:
-        video_file = st.file_uploader('File uploader', key=1, accept_multiple_files=False)
-        if video_file is not None:
-            with st.spinner(text='Transcrevendo...'):
-                result = post_file(video_file)
-                st.write(result)
-            st.success('Transcrição concluída')
-    with tab2:
-        st.text_input('Link do YouTube')
-        st.button('Transcrever')
 
-def post_file(file):
-    try:
-        response = requests.post('http://localhost:5000/whisper', files={'file': file})
-        transcript = response.json()['results'][0]['transcript']
-        return transcript
-    except:
-        return "Erro ao enviar arquivo"
+    with tab1:
+        file_api = api_connect('whisper')
+        video_file = st.file_uploader('File uploader', accept_multiple_files=False)
+
+        if video_file is not None:
+            loader.load(video_file, file_api)
+
+    with tab2:
+        ytb_api = api_connect('transcribe_youtube')
+        youtube_link = 'https://www.youtube.com/'
+        link = st.text_input('Link do YouTube')
+
+        if link.startswith(youtube_link):
+            loader.load(link, ytb_api)
+        else:
+            st.warning('Insira um link válido do YouTube (https://www.youtube.com/)')
+
+def config():
+
+    st.set_page_config(
+    page_title="Estimulo KnowledgeBase",
+    page_icon=":🧠:",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+    )
 
 if __name__ == '__main__':
     run_app()
