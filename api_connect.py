@@ -5,9 +5,9 @@ class api_connect:
         self.url = f'http://localhost:5000/{route}'
 
     def post_data(self, body):
-        if self.url == 'http://localhost:5000/transcribe_youtube':
+        if self.url.endswith('transcribe_youtube'):
             response = requests.post(self.url, json={'link': body})
-        elif self.url == 'http://localhost:5000/whisper':
+        elif self.url.endswith('whisper'):
             response = requests.post(self.url, files={'file': body})
         transcript = response.json()['results'][0]['transcript']
         

@@ -41,16 +41,30 @@ def handler():
 @app.route('/transcribe_youtube', methods=['POST'])
 def transcribe_youtube():
     youtube_link = request.json['link']
-    
-    with NamedTemporaryFile(suffix=".mp4") as temp:
-        ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-            'outtmpl': temp.name,
-            'postprocessors': [],
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([youtube_link])
-        
-        result = model.transcribe(temp.name)
-    
-    return {'transcript': result['text']}
+    results = []
+    temp = NamedTemporaryFile()
+
+    ydl_opts = {
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'outtmpl': temp.name,
+        'postprocessors': [],
+    }
+
+    ydl = yt_dlp.YoutubeDL(ydl_opts)
+    print("Downloading video...")
+    status_code = ydl.download([youtube_link])
+    if status_code == 0:
+        print("Video downloaded and saved to " + temp.name)
+    else:
+        print("Video download failed")
+
+    print("Transcribing video...")
+    result = model.transcribe(f"{temp.name}.mp4")
+    print("Video transcribed!")
+
+    results.append({
+        'filename': temp.name,
+        'transcript': result['text'],
+    })
+
+    return {'results': results}

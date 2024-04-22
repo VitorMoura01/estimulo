@@ -5,6 +5,7 @@ from loader import loader
 
 def run_app():
     config()
+    
     st.title('Estimulo KnowledgeBase')
     st.subheader('Carregar vídeo via:')
     tab1, tab2 = st.tabs(['Upload de arquivo', 'Vídeo do YouTube'])
