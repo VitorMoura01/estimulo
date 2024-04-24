@@ -1,6 +1,7 @@
+import re
 import streamlit as st
 from api_connect import api_connect 
-from loader import loader
+import loader as loader
 
 
 def run_app():
@@ -19,13 +20,22 @@ def run_app():
 
     with tab2:
         ytb_api = api_connect('transcribe_youtube')
-        youtube_link = 'https://www.youtube.com/'
         link = st.text_input('Link do YouTube')
+        youtube_link_pattern = r'https://(www\.youtube\.com/|youtu\.be/)'
 
-        if link.startswith(youtube_link):
+        if re.match(youtube_link_pattern, link):
             loader.load(link, ytb_api)
         else:
-            st.warning('Insira um link válido do YouTube (https://www.youtube.com/)')
+            st.warning('Insira um link válido do YouTube (https://www.youtube.com/...)')
+    
+    st.divider()
+    
+    st.download_button(
+        label="Download txt file",
+        data= api_connect('get_txt').get_data(),
+        file_name='knowledgePrompt.txt',
+        mime='text/plain',
+    )
 
 def config():
 
