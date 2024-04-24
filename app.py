@@ -1,9 +1,10 @@
-from flask import Flask, abort, request
+from flask import Flask, abort, request, send_file, make_response
 from flask_cors import CORS
 from tempfile import NamedTemporaryFile
 import whisper
 import torch
 import yt_dlp
+import db_repository as db
 import os
 
 # Check if NVIDIA GPU is available
@@ -19,6 +20,28 @@ CORS(app)
 def run_streamlit():
     return "Run Streamlit app"
 
+def post_link(link, transcript):
+    conn = db.connect_to_db()
+    db.create_table(conn)
+    print('Table created successfully')
+    db.insert_into_table(conn, link, transcript)
+    print('Values inserted successfully')
+    db.close_connection(conn)
+    print('Connection closed successfully')
+
+@app.route('/get_txt', methods=['GET'])
+def get_txt():
+    conn = db.connect_to_db()
+    db.create_table(conn)
+    print('Table created successfully')
+    txt_path = db.select_all_and_create_txt(conn)
+    db.close_connection(conn)
+    print('Connection closed successfully')
+
+    if os.path.isfile(txt_path):
+        return send_file(txt_path, as_attachment=True)
+    else:
+        return make_response(f"File '{txt_path}' not found.", 404)
 
 @app.route('/whisper', methods=['POST'])
 def handler():
@@ -51,20 +74,17 @@ def transcribe_youtube():
     }
 
     ydl = yt_dlp.YoutubeDL(ydl_opts)
-    print("Downloading video...")
     status_code = ydl.download([youtube_link])
     if status_code == 0:
         print("Video downloaded and saved to " + temp.name)
     else:
         print("Video download failed")
 
-    print("Transcribing video...")
     result = model.transcribe(f"{temp.name}.mp4")
-    print("Video transcribed!")
-
     results.append({
         'filename': temp.name,
         'transcript': result['text'],
     })
+    post_link(youtube_link, result['text'])
 
     return {'results': results}

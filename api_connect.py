@@ -20,3 +20,8 @@ class api_connect:
         else:
             print("Error: Received status code", response.status_code)
             print("Response content:", response.content)
+    
+    def get_data(self):
+        if self.url.endswith('get_txt'):
+            response = requests.get(self.url)
+        return response.content.decode('utf-8')
