@@ -23,16 +23,9 @@ def run_app():
     
     st.title('Estimulo KnowledgeBase')
     st.subheader('Carregar vídeo via:')
-    tab1, tab2 = st.tabs(['Upload de arquivo', 'Vídeo do YouTube'])
+    tab1, tab2 = st.tabs(['Vídeo do YouTube', 'Upload de arquivo'])
 
     with tab1:
-        file_api = WhisperAPI()
-        video_file = st.file_uploader('File uploader', accept_multiple_files=False)
-
-        if video_file is not None:
-            load(file_api.post_data, video_file)
-
-    with tab2:
         ytb_api = TranscribeYoutubeAPI()
 
         link = st.text_input('Link do YouTube')
@@ -42,6 +35,13 @@ def run_app():
             load(ytb_api.post_data, link)
         else:
             st.warning('Insira um link válido do YouTube (https://www.youtube.com/...)')
+
+    with tab2:
+        file_api = WhisperAPI()
+        video_file = st.file_uploader('File uploader', accept_multiple_files=False)
+
+        if video_file is not None:
+            load(file_api.post_data, video_file)
     st.divider()
 
 
