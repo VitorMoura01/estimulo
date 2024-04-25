@@ -20,23 +20,13 @@ CORS(app)
 def run_streamlit():
     return "Run Streamlit app"
 
-def post_link(link, transcript):
-    conn = db.connect_to_db()
-    db.create_table(conn)
-    print('Table created successfully')
-    db.insert_into_table(conn, link, transcript)
-    print('Values inserted successfully')
-    db.close_connection(conn)
-    print('Connection closed successfully')
-
 @app.route('/get_txt', methods=['GET'])
 def get_txt():
     conn = db.connect_to_db()
     db.create_table(conn)
-    print('Table created successfully')
     txt_path = db.select_all_and_create_txt(conn)
     db.close_connection(conn)
-    print('Connection closed successfully')
+    print(f"File '{txt_path}' created successfully")
 
     if os.path.isfile(txt_path):
         return send_file(txt_path, as_attachment=True)
@@ -64,27 +54,47 @@ def handler():
 @app.route('/transcribe_youtube', methods=['POST'])
 def transcribe_youtube():
     youtube_link = request.json['link']
+
+    conn = db.connect_to_db()
+    db.create_table(conn)
+    response_value = db.verify_existance(conn, youtube_link)
     results = []
-    temp = NamedTemporaryFile()
 
-    ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
-        'outtmpl': temp.name,
-        'postprocessors': [],
-    }
+    if response_value == 1:
+        results.append({
+            'filename': "ERRO",
+            'transcript': 'Data already exists in the table',
+        })
+        return {'results': results}
+    elif response_value == 0:
+        temp = NamedTemporaryFile()
 
-    ydl = yt_dlp.YoutubeDL(ydl_opts)
-    status_code = ydl.download([youtube_link])
-    if status_code == 0:
-        print("Video downloaded and saved to " + temp.name)
-    else:
-        print("Video download failed")
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+            'outtmpl': temp.name,
+            'postprocessors': [],
+        }
 
-    result = model.transcribe(f"{temp.name}.mp4")
-    results.append({
-        'filename': temp.name,
-        'transcript': result['text'],
-    })
-    post_link(youtube_link, result['text'])
+        ydl = yt_dlp.YoutubeDL(ydl_opts)
+        status_code = ydl.download([youtube_link])
+        if status_code == 0:
+            print("Video downloaded and saved to " + temp.name)
+        else:
+            print("Video download failed")
 
-    return {'results': results}
+        result = model.transcribe(f"{temp.name}.mp4")
+        results.append({
+            'filename': temp.name,
+            'transcript': result['text'],
+        })
+
+        post_link(youtube_link, result['text'])
+
+        return {'results': results}
+
+def post_link(link, transcript):
+    conn = db.connect_to_db()
+    db.create_table(conn)
+    db.insert_into_table(conn, link, transcript)
+
+    db.close_connection(conn)

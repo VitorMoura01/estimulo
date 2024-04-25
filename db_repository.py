@@ -18,13 +18,27 @@ def create_table(conn):
     conn.commit()
     cur.close()
 
+def verify_existance(conn, link):
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT link 
+        FROM transcripts
+    ''')
+    links_registry = [item[0] for item in cur.fetchall()]    
+    cur.close()
+    print(links_registry)
+
+    if link in links_registry:
+        return 1
+    else:
+        return 0
+
 def insert_into_table(conn, link, transcript):
     cur = conn.cursor()
     cur.execute('''
         INSERT INTO transcripts (link, transcript) 
         VALUES (%s, %s)
     ''', (link, transcript))
-
     conn.commit()
     cur.close()
 

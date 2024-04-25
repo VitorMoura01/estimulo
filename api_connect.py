@@ -1,27 +1,51 @@
 import requests
 
-class api_connect:
+class API:
     def __init__(self, route):
         self.url = f'http://localhost:5000/{route}'
 
-    def post_data(self, body):
-        if self.url.endswith('transcribe_youtube'):
-            response = requests.post(self.url, json={'link': body})
-        elif self.url.endswith('whisper'):
-            response = requests.post(self.url, files={'file': body})
-        transcript = response.json()['results'][0]['transcript']
-        
+    def post(self, data=None, json=None):
+        if json is not None:
+            response = requests.post(self.url, json=json)
+        else:
+            response = requests.post(self.url, data=data)
+        return self.handle_response(response)
+
+    def get(self):
+        response = requests.get(self.url)
+        return self.handle_response(response)
+
+    def handle_response(self, response):
         if response.status_code == 200:
             try:
-                return transcript
+                return response.json()['results'][0]['transcript']
             except ValueError:
-                print("Error: Response is not valid File.")
-                print("Response content:", response.content)
+                print("Response is not valid JSON. Returning as string.")
+                return response
         else:
             print("Error: Received status code", response.status_code)
             print("Response content:", response.content)
-    
+
+
+class TranscribeYoutubeAPI(API):
+    def __init__(self):
+        super().__init__('transcribe_youtube')
+
+    def post_data(self, link):
+        return self.post(json={'link': link})
+
+
+class WhisperAPI(API):
+    def __init__(self):
+        super().__init__('whisper')
+
+    def post_data(self, file):
+        return self.post(files={'file': file})
+
+
+class GetTxtAPI(API):
+    def __init__(self):
+        super().__init__('get_txt')
+
     def get_data(self):
-        if self.url.endswith('get_txt'):
-            response = requests.get(self.url)
-        return response.content.decode('utf-8')
+        return self.get().content.decode('utf-8')
