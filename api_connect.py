@@ -17,11 +17,7 @@ class API:
 
     def handle_response(self, response):
         if response.status_code == 200:
-            try:
-                return response.json()['results'][0]['transcript']
-            except ValueError:
-                print("Response is not valid JSON. Returning as string.")
-                return response
+            return response
         else:
             print("Error: Received status code", response.status_code)
             print("Response content:", response.content)
@@ -32,7 +28,7 @@ class TranscribeYoutubeAPI(API):
         super().__init__('transcribe_youtube')
 
     def post_data(self, link):
-        return self.post(json={'link': link})
+        return self.post(json={'link': link}).json()['results'][0]['transcript']
 
 
 class WhisperAPI(API):
@@ -40,7 +36,7 @@ class WhisperAPI(API):
         super().__init__('whisper')
 
     def post_data(self, file):
-        return self.post(files={'file': file})
+        return self.post(files={'file': file}).json()['results'][0]['transcript']
 
 
 class GetTxtAPI(API):
