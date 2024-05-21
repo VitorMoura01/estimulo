@@ -4,11 +4,11 @@ class API:
     def __init__(self, route):
         self.url = f'http://localhost:5000/{route}'
 
-    def post(self, data=None, json=None):
+    def post(self, files=None, json=None):
         if json is not None:
             response = requests.post(self.url, json=json)
         else:
-            response = requests.post(self.url, data=data)
+            response = requests.post(self.url, files=files)
         return self.handle_response(response)
 
     def get(self):

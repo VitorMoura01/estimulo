@@ -39,15 +39,15 @@ def handler():
         abort(400)
 
     results = []
-
     for filename, handle in request.files.items():
-        temp = NamedTemporaryFile()
-        handle.save(temp)
+        temp = NamedTemporaryFile(delete=False)
+        handle.save(temp.name)
         result = model.transcribe(temp.name)
         results.append({
             'filename': filename,
             'transcript': result['text'],
         })
+        os.remove(temp.name)
 
     return {'results': results}
 

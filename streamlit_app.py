@@ -1,4 +1,9 @@
+from io import BytesIO
+import zipfile
+from tempfile import TemporaryDirectory
+import os
 import re
+import requests
 import streamlit as st
 from api_connect import TranscribeYoutubeAPI, WhisperAPI, GetTxtAPI 
 
@@ -10,13 +15,28 @@ def config():
     initial_sidebar_state="collapsed"
     )
 
-def load(func, *args, **kwargs):
+def handle_zip_file(uploaded_file):
+    temp_dir = TemporaryDirectory()
+    try:
+        with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir.name)
+        return temp_dir
+    except zipfile.BadZipFile:
+        st.error(f"Error: The file {uploaded_file.name} is not a valid zip file.")
+        return None
+
+def load(filename, func, *args, **kwargs):
     st.divider()
-    st.subheader("Transcrição:")
+    st.subheader(f"Transcrição para {filename}:")
     with st.spinner(text='Carregando, pode demorar alguns minutos...'):
-        result = func(*args, **kwargs)
+        response = func(*args, **kwargs)
+        if isinstance(response, requests.Response):
+            result_json = response.json()
+            transcription = result_json['results'][0]['transcript']
+        else:
+            transcription = response
     st.success('Concluído')
-    st.text_area(label ="Resultado",value=result, height =100, disabled=True)
+    st.text_area(label ="Resultado",value=transcription, height =100, disabled=True, key=filename)
     
 def run_app():
     config()
@@ -38,11 +58,25 @@ def run_app():
 
     with tab2:
         file_api = WhisperAPI()
-        video_file = st.file_uploader('File uploader', accept_multiple_files=False)
+        uploaded_file = st.file_uploader('File uploader', accept_multiple_files=False)
 
-        if video_file is not None:
-            load(file_api.post_data, video_file)
-    st.divider()
+        if uploaded_file is not None:
+            _, extension = os.path.splitext(uploaded_file.name)
+            if extension.lower() == '.zip':
+                temp_dir = handle_zip_file(uploaded_file)
+                if temp_dir:
+                    for root, _, files in os.walk(temp_dir.name):
+                        for filename in files:
+                            file_path = os.path.join(root, filename)
+                            with open(file_path, 'rb') as file:
+                                binary_file = BytesIO(file.read())
+                                binary_file.name = filename
+                                load(filename, file_api.post, {'file': (filename, binary_file)})
+                    temp_dir.cleanup()
+
+            else:
+                load(uploaded_file.name, file_api.post_data, uploaded_file)
+        st.divider()
 
 
     
