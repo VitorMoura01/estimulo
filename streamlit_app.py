@@ -3,6 +3,7 @@ import zipfile
 from tempfile import TemporaryDirectory
 import os
 import re
+import pandas as pd
 import requests
 import streamlit as st
 from api_connect import TranscribeYoutubeAPI, WhisperAPI, GetTxtAPI 
@@ -12,7 +13,7 @@ def config():
     page_title="Estimulo KnowledgeBase",
     page_icon=":🧠:",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
     )
 
 def handle_zip_file(uploaded_file):
@@ -52,7 +53,7 @@ def run_app():
         youtube_link_pattern = r'https://(www\.youtube\.com/|youtu\.be/)'
 
         if re.match(youtube_link_pattern, link):
-            load(ytb_api.post_data, link)
+            load("vídeo do YouTube", ytb_api.post_data, link)
         else:
             st.warning('Insira um link válido do YouTube (https://www.youtube.com/...)')
 
@@ -83,12 +84,19 @@ def run_app():
     txt_api = GetTxtAPI()
     data = txt_api.get_data()
     if data is not None:
-        st.download_button(
-            label="Download txt file",
+        st.sidebar.title('Base de conhecimento')
+        matches = re.findall(r'(\d+)\s+(https?://\S+)\s+(.+?)(?=\s+\d+|$)', data)
+        df = pd.DataFrame(matches, columns=['id', 'link', 'transcript'])
+        df = df.drop('id', axis=1)
+        st.sidebar.download_button(
+            label="Fazer o download",
             data=data,
             file_name='knowledgePrompt.txt',
             mime='text/plain',
+            type='primary',
+            use_container_width=True,
         )
+        st.sidebar.write(df)
     else:
         st.warning('Não foi possível obter os dados.')
 
