@@ -44,4 +44,8 @@ class GetTxtAPI(API):
         super().__init__('get_txt')
 
     def get_data(self):
-        return self.get().content.decode('utf-8')
+        response = self.get()
+        if response is not None:
+            return response.content.decode('utf-8')
+        else:
+            return None

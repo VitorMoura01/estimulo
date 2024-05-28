@@ -55,7 +55,7 @@ def run_app():
         if re.match(youtube_link_pattern, link):
             load("vídeo do YouTube", ytb_api.post_data, link)
         else:
-            st.warning('Insira um link válido do YouTube (https://www.youtube.com/...)')
+            st.info('Insira um link válido do YouTube (https://www.youtube.com/...)')
 
     with tab2:
         file_api = WhisperAPI()
