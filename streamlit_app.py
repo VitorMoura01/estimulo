@@ -1,4 +1,5 @@
 from io import BytesIO
+import unicodedata
 import zipfile
 from tempfile import TemporaryDirectory
 import os
@@ -72,11 +73,13 @@ def run_app():
                             with open(file_path, 'rb') as file:
                                 binary_file = BytesIO(file.read())
                                 binary_file.name = filename
+                                filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode('ASCII')
                                 load(filename, file_api.post, {'file': (filename, binary_file)})
                     temp_dir.cleanup()
 
             else:
                 load(uploaded_file.name, file_api.post_data, uploaded_file)
+
         st.divider()
 
 

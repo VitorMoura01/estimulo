@@ -1,6 +1,8 @@
 .history
 venv
+credentials
 __pycache__
 .idea
 *.mp4
 knowledgePrompt.txt
+client_secrets.json*
