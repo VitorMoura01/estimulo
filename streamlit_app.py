@@ -39,7 +39,22 @@ def load(filename, func, *args, **kwargs):
             transcription = response
     st.success('Concluído')
     st.text_area(label ="Resultado",value=transcription, height =100, disabled=True, key=filename)
-    
+
+def get_youtube_auth_url():
+    response = requests.get("http://localhost:5000/youtube_auth_url")
+    if response.status_code == 200:
+        return response.json().get("auth_url")
+    else:
+        st.error("Failed to get YouTube auth URL.")
+        return None
+
+def verify_youtube_code(code):
+    response = requests.post("http://localhost:5000/youtube_verify_code", json={"code": code})
+    if response.status_code == 200:
+        st.success("YouTube authentication successful!")
+    else:
+        st.error("Failed to verify YouTube code.")
+
 def run_app():
     config()
     
@@ -76,14 +91,33 @@ def run_app():
                                 filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode('ASCII')
                                 load(filename, file_api.post, {'file': (filename, binary_file)})
                     temp_dir.cleanup()
-
             else:
                 load(uploaded_file.name, file_api.post_data, uploaded_file)
 
         st.divider()
 
+    # YouTube Authentication Section
+    st.sidebar.subheader("YouTube Authentication")
+    if st.sidebar.button("Authenticate with YouTube"):
+        auth_url = get_youtube_auth_url()
+        if auth_url:
+            st.sidebar.write(f"[Click here to authenticate with YouTube]({auth_url})")
 
-    
+    # code = st.sidebar.text_input("Enter YouTube code here:")
+    # if st.sidebar.button("Submit YouTube code"):
+    #     if code:
+    #         verify_youtube_code(code)
+    #     else:
+    #         st.sidebar.error("Please enter a valid code.")
+
+    # Add button to clear credentials and reauthenticate
+    if st.sidebar.button('Clear Credentials and Reauthenticate'):
+        response = requests.get('http://localhost:5000/clear_credentials')
+        if response.status_code == 200:
+            st.success('Credentials cleared. Please reauthenticate.')
+        else:
+            st.error('Failed to clear credentials.')
+            
     txt_api = GetTxtAPI()
     data = txt_api.get_data()
     if data is not None:
