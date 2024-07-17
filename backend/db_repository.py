@@ -3,7 +3,7 @@ import psycopg2
 import pandas as pd
 
 def connect_to_db():
-    conn = psycopg2.connect(host='localhost', database='videoknowledge', user='postgres', password='postgres', port='5432')
+    conn = psycopg2.connect(host='postgres_db', database='videoknowledge', user='postgres', password='postgres', port='5432')
     return conn
 
 def create_table(conn):

@@ -2,7 +2,7 @@ import requests
 
 class API:
     def __init__(self, route):
-        self.url = f'http://localhost:5000/{route}'
+        self.url = f'http://flask_app:5000/{route}'
 
     def post(self, files=None, json=None):
         if json is not None:

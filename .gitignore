@@ -4,3 +4,10 @@ __pycache__
 .idea
 *.mp4
 knowledgePrompt.txt
+client_secrets.json*
+*.pyo
+*.pyd
+__pycache__/
+*.db
+*.sqlite3
+*.log

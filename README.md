@@ -1,72 +1,92 @@
-## What is Whisper?
+# Estimulo Video Knowledge
 
-Whisper is an automatic State-of-the-Art speech recognition system from OpenAI that has been trained on 680,000 hours 
-of multilingual and multitask supervised data collected from the web. This large and diverse 
-dataset leads to improved robustness to accents, background noise and technical language. In 
-addition, it enables transcription in multiple languages, as well as translation from those 
-languages into English. OpenAI released the models and code to serve as a foundation for building useful
-applications that leverage speech recognition. 
+## Descrição
+Este projeto é uma aplicação web que transcreve vídeos do YouTube utilizando a API Whisper. O frontend é construído com Streamlit e o backend é desenvolvido em Flask. O banco de dados utilizado é o PostgreSQL, gerenciado com Docker.
 
-## How to start with Docker
-1. First of all if you are planning to run the container on your local machine you need to have Docker installed.
-You can find the installation instructions [here](https://docs.docker.com/get-docker/).
-2. Creating a folder for our files, lets call it `whisper-api`
-3. Create a file called requirements.txt and add flask to it.
-4. Create a file called Dockerfile 
+## Estrutura do Projeto
+- **Frontend**: Streamlit
+- **Backend**: Flask
+- **Banco de Dados**: PostgreSQL (Docker)
+- **Gerenciamento de Contêineres**: Docker Compose
 
-In the Dockerfile we will add the following lines:
+## Pré-requisitos
+- Docker
+- Docker Compose
 
-```dockerfile
-FROM python:3.10-slim
+Caso você deseje rodar o projeto na sua máquina local, você pode seguir as instruções de instalação [aqui](https://docs.docker.com/get-docker/).
 
-WORKDIR /python-docker
+## Como Executar
 
-COPY requirements.txt requirements.txt
-RUN apt-get update && apt-get install git -y
-RUN pip3 install -r requirements.txt
-RUN pip3 install "git+https://github.com/openai/whisper.git" 
-RUN apt-get install -y ffmpeg
+### 1. Clonar o Repositório
+```bash
+git clone https://github.com/VitorMoura01/estimulo.git
+cd estimulo
+```
+### 2. Diretório
 
-COPY . .
+Certifique-se de que a estrutura do diretório do projeto esteja organizada da seguinte forma:
 
-EXPOSE 5000
+estimulo/
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── app.py
+│   └── db_repository.py
+│
+├── frontend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── streamlit_app.py
+│   └── api_connect.py
+│
+└── docker-compose.yml
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
-```  
-### So what is happening exactly in the Dockerfile?
-1. Choosing a python 3.10 slim image as our base image.
-2. Creating a working directory called `python-docker`
-3. Copying our requirements.txt file to the working directory
-4. Updating the apt package manager and installing git
-5. Installing the requirements from the requirements.txt file
-6. installing the whisper package from github.
-7. Installing ffmpeg
-8. And exposing port 5000 and running the flask server.
-
-## How to create our rout
-1. Create a file called app.py where we import all the necessary packages and initialize the flask app and whisper.
-
-## How to run the container?
-1. Open a terminal and navigate to the folder where you created the files.
-2. Run the following command to build the container:
+### 3. Iniciar os Contêineres
+Na pasta raiz do projeto, execute o seguinte comando para iniciar os contêineres:
 
 ```bash
-docker build -t whisper-api .
+docker-compose up --build
 ```
-3. Run the following command to run the container:
+Pronto! Agora o Frontend e o backend ja estão funcionando.
+
+### 4. Testar a Aplicação
+Frontend:
+ - Streamlit App: http://localhost:8501
+
+Backend: 
+- Flask API: http://localhost:5000
+
+Caso seja necessário, você pode verificar a porta e conectividade dos contêineres entrando neles.
+
+Frontend:
+```bash
+docker exec -it streamlit_app bash
+```
+Backend:
+```bash
+docker exec -it flask_app bash
+```
+
+Dentro do contêiner Streamlit, você pode usar curl para verificar a conectividade:
 
 ```bash
-docker run -p 5000:5000 whisper-api
+apt-get update && apt-get install curl
+curl http://flask_app:5000/get_txt
 ```
 
-If you are having errors on MacOS please add `RUN pip3 install markupsafe==2.0.1` to the dockerfile. 
+## Endpoints da API
+### Transcrever Link do YouTube
+URL: /transcribe_youtube
+Método: POST
+Parâmetros: {"link": "<URL_do_Video>"}
 
-## How to test the API?
-1. You can test the API by sending a POST request to the route `http://localhost:5000/whisper` with a file in it. Body should be form-data.
-2. You can use the following curl command to test the API:
+### Obter Base de Texto
+URL: /get_txt
+Método: GET
 
-```bash
-curl -F "file=@/path/to/file" http://localhost:5000/whisper
-```
+## Contribuições
 
-3. In result you should get a JSON object with the transcript in it.
+- <a href="https://www.linkedin.com/in/vitor-moura-de-oliveira/">Vitor Moura</a>
+- <a href="https://www.linkedin.com/in/lucas-vieira-376665208/">Lucas Vieira</a>
+- <a href="https://www.linkedin.com/in/raduanmuarrek/">Raduan Muarrek</a>
