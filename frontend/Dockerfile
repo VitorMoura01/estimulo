@@ -1,5 +1,9 @@
 FROM python:3.10-slim
 
+RUN apt-get update && apt-get install -y netcat-openbsd
+
+COPY wait.sh /wait.sh
+
 WORKDIR /app
 
 # Instala as dependências do sistema
@@ -9,11 +13,8 @@ RUN apt-get update && apt-get install -y git ffmpeg libpq-dev build-essential
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o restante do código para o container
 COPY . .
 
-# Exponha a porta 8501 para o Streamlit
-EXPOSE 8501
+RUN chmod +x /wait.sh
 
-# Comando para iniciar a aplicação Streamlit
-CMD ["streamlit", "run", "streamlit_app.py"]
+CMD ["/wait.sh", "flask_app", "5000", "streamlit", "run", "streamlit_app.py"]

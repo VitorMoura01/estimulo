@@ -26,21 +26,23 @@ cd estimulo
 
 Certifique-se de que a estrutura do diretório do projeto esteja organizada da seguinte forma:
 
-estimulo/
-│
-├── backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── app.py
-│   └── db_repository.py
-│
-├── frontend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── streamlit_app.py
-│   └── api_connect.py
-│
-└── docker-compose.yml
+    estimulo/ 
+    │
+    ├── backend/
+    │   ├── Dockerfile          
+    │   ├── requirements.txt    # Dependências do Backend
+    │   ├── app.py
+    │   └── db_repository.py    # Funções para conexão com o Banco de dados 
+    │
+    ├── frontend/              
+    │   ├── Dockerfile          
+    │   ├── requirements.txt    # Dependências do Frontend
+    │   ├── streamlit_app.py
+    │   ├── api_connect.py      # Classes para conexão com a API
+    │   └── wait.sh             # Gerenciador de execução
+    │
+    ├── docker-compose.yml
+    └── ...
 
 ### 3. Iniciar os Contêineres
 Na pasta raiz do projeto, execute o seguinte comando para iniciar os contêineres:

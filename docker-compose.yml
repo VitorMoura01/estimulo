@@ -3,11 +3,11 @@ version: '3.8'
 services:
   postgres_db:
     image: postgres:latest
-    container_name: postgres_db
+    container_name: ${DATABASE_HOST}
     environment:
-      POSTGRES_DB: videoknowledge
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -19,10 +19,16 @@ services:
     container_name: flask_app
     environment:
       - FLASK_APP=app.py
+      - DB_HOST=${DATABASE_HOST}
+      - DB_USER=${DATABASE_USER}
+      - DB_PASS=${DATABASE_PASSWORD}
+      - DB_NAME=${DATABASE_NAME}
     ports:
       - "5000:5000"
     depends_on:
       - postgres_db
+    env_file:
+      - .env
 
   streamlit_app:
     build:

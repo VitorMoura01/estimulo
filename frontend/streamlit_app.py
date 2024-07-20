@@ -1,4 +1,5 @@
 from io import BytesIO
+import time
 import zipfile
 from tempfile import TemporaryDirectory
 import os
@@ -42,44 +43,20 @@ def load(filename, func, *args, **kwargs):
 def run_app():
     config()
     
-    st.title('Estimulo KnowledgeBase')
-    st.subheader('Carregar vídeo via:')
-    tab1, tab2 = st.tabs(['Vídeo do YouTube', 'Upload de arquivo'])
+    st.title('Estímulo KnowledgeBase')
+    st.subheader('Carregar vídeo via link do YouTube:')
 
-    with tab1:
-        ytb_api = TranscribeYoutubeAPI()
+    ytb_api = TranscribeYoutubeAPI()
 
-        link = st.text_input('Link do YouTube')
-        youtube_link_pattern = r'https://(www\.youtube\.com/|youtu\.be/)'
+    link = st.text_input('Link do YouTube')
+    youtube_link_pattern = r'https://(www\.youtube\.com/|youtu\.be/)'
 
-        if re.match(youtube_link_pattern, link):
-            load("vídeo do YouTube", ytb_api.post_data, link)
-        else:
-            st.info('Insira um link válido do YouTube (https://www.youtube.com/...)')
+    if re.match(youtube_link_pattern, link):
+        load("vídeo do YouTube", ytb_api.post_data, link)
+    else:
+        st.info('Insira um link válido do YouTube (https://www.youtube.com/...)')
 
-    with tab2:
-        file_api = WhisperAPI()
-        uploaded_file = st.file_uploader('File uploader', accept_multiple_files=False)
-
-        if uploaded_file is not None:
-            _, extension = os.path.splitext(uploaded_file.name)
-            if extension.lower() == '.zip':
-                temp_dir = handle_zip_file(uploaded_file)
-                if temp_dir:
-                    for root, _, files in os.walk(temp_dir.name):
-                        for filename in files:
-                            file_path = os.path.join(root, filename)
-                            with open(file_path, 'rb') as file:
-                                binary_file = BytesIO(file.read())
-                                binary_file.name = filename
-                                load(filename, file_api.post, {'file': (filename, binary_file)})
-                    temp_dir.cleanup()
-
-            else:
-                load(uploaded_file.name, file_api.post_data, uploaded_file)
-        st.divider()
-
-
+    st.divider()
     
     txt_api = GetTxtAPI()
     data = txt_api.get_data()
